@@ -22,7 +22,7 @@ module SamlIdp
         ds: signature_namespace,
         md: metadata_namespace
       ).first
-      doc ? !!doc["WantAssertionsSigned"] : false
+      doc ? (doc["WantAssertionsSigned"] == 'true') : false
     end
     hashable :sign_assertions
 
@@ -32,13 +32,17 @@ module SamlIdp
     hashable :display_name
 
     def contact_person
-      {
-        given_name: given_name,
-        surname: surname,
-        company: company,
-        telephone_number: telephone_number,
-        email_address: email_address
-      }
+      if contact_person_document
+        {
+          given_name: given_name,
+          surname: surname,
+          company: company,
+          telephone_number: telephone_number,
+          email_address: email_address
+        }
+      else
+        {}
+      end
     end
     hashable :contact_person
 
