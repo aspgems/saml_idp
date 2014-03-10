@@ -43,6 +43,20 @@ module SamlIdp
       ).build
     end
 
+    def encode_logout_response(opts = {})
+      response_id, reference_id = get_saml_response_id, get_saml_reference_id
+      opt_issuer_uri = opts[:issuer_uri] || issuer_uri
+
+      LogoutResponse.new(
+          reference_id,
+          response_id,
+          opt_issuer_uri,
+          saml_request_id,
+          saml_acs_url,
+          algorithm
+      ).build
+    end
+
     def issuer_uri
       (SamlIdp.config.base_saml_location.present? && SamlIdp.config.base_saml_location) ||
         (defined?(request) && request.url.to_s.split("?").first) ||

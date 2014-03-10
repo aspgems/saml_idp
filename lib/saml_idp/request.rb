@@ -32,18 +32,22 @@ module SamlIdp
     end
 
     def request_id
-      authn_request["ID"]
+      (authn_request || logout_request)["ID"]
     end
 
     def acs_url
       service_provider.acs_url ||
-        authn_request["AssertionConsumerServiceURL"].to_s
+        authn_request && authn_request["AssertionConsumerServiceURL"].to_s
+    end
+
+    def slo_location
+      service_provider.current_metadata.attributes['single_logout_services']['HTTP-Redirect']
     end
 
     def valid?
       service_provider? &&
         valid_signature? &&
-        acs_url.present?
+        (logout_request || acs_url.present?)
     end
 
     def valid_signature?
@@ -63,6 +67,11 @@ module SamlIdp
       @content if @content.present?
     end
 
+    def name_id
+      @name_id ||= xpath("//saml:NameID", saml: assertion).first.try(:content)
+      @name_id if @name_id.present?
+    end
+
     def document
       @document ||= Saml::XML::Document.parse(raw_xml)
     end
@@ -70,6 +79,11 @@ module SamlIdp
 
     def authn_request
       xpath("//samlp:AuthnRequest", samlp: samlp).first
+    end
+    private :authn_request
+
+    def logout_request
+      xpath("//samlp:LogoutRequest", samlp: samlp).first
     end
     private :authn_request
 

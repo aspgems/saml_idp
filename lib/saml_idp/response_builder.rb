@@ -1,16 +1,18 @@
 require 'builder'
 module SamlIdp
   class ResponseBuilder
+    attr_accessor :tag
     attr_accessor :response_id
     attr_accessor :issuer_uri
-    attr_accessor :saml_acs_url
+    attr_accessor :saml_destination
     attr_accessor :saml_request_id
     attr_accessor :assertion_and_signature
 
-    def initialize(response_id, issuer_uri, saml_acs_url, saml_request_id, assertion_and_signature)
+    def initialize(response_id, issuer_uri, saml_destination, saml_request_id, assertion_and_signature, tag = 'Response')
+      self.tag = tag
       self.response_id = response_id
       self.issuer_uri = issuer_uri
-      self.saml_acs_url = saml_acs_url
+      self.saml_destination = saml_destination
       self.saml_request_id = saml_request_id
       self.assertion_and_signature = assertion_and_signature
     end
@@ -30,11 +32,11 @@ module SamlIdp
 
     def build
       builder = Builder::XmlMarkup.new
-      builder.tag! "samlp:Response",
+      builder.tag! "samlp:#{tag}",
         ID: response_id_string,
         Version: "2.0",
         IssueInstant: now_iso,
-        Destination: saml_acs_url,
+        Destination: saml_destination,
         Consent: Saml::XML::Namespaces::Consents::UNSPECIFIED,
         InResponseTo: saml_request_id,
         "xmlns:samlp" => Saml::XML::Namespaces::PROTOCOL do |response|
